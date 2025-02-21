@@ -20,14 +20,11 @@ def create_app(test_config=None):
     )
 
     if test_config is None:
-        app.config.from_pyfile("config.py", silent=True)
+        app.config.from_pyfile("config/config.py", silent=True)
     else:
         app.config.from_mapping(test_config)
 
-    try:
-        os.makedirs(app.instance_path)
-    except OSError:
-        pass
+    os.makedirs(app.instance_path, exist_ok=True)
 
     db.init_app(app)
     cache.init_app(app)

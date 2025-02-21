@@ -11,7 +11,7 @@ deployments = db.Table(
 
 class ApiKey(db.Model):
     
-    key = db.Column(db.String(32), nullable=False, unique=True, primary_key=True)
+    key = db.Column(db.LargeBinary, nullable=False, unique=True, primary_key=True)
     sensor_id = db.Column(db.Integer, db.ForeignKey("sensor.id"), nullable=True)
     admin =  db.Column(db.Boolean, default=False)
     
@@ -165,5 +165,3 @@ def generate_master_key():
     db.session.add(db_key)
     db.session.commit()
     print(token)
-    
-#PtjyzrB50rq3plSTUpzT8Ijgui6jYWkA9GY5gRT5QC4
