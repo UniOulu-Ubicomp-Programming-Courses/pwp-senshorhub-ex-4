@@ -1,6 +1,8 @@
 import json
 import secrets
-from flask import Response, request, url_for
+import ssl
+from flask import Response, current_app, request, url_for
+import pika
 from werkzeug.exceptions import Forbidden, NotFound
 from werkzeug.routing import BaseConverter
 
@@ -40,3 +42,32 @@ class SensorConverter(BaseConverter):
         
     def to_url(self, db_sensor):
         return db_sensor.name
+
+
+def get_rabbit_connection():
+    if current_app.config["RABBITMQ_USE_TLS"]:
+        context = ssl.create_default_context(cafile=current_app.config["CA_CERT"])
+        context.verify_mode = ssl.CERT_REQUIRED
+        context.load_cert_chain(
+            current_app.config["CLIENT_CERT"],
+            current_app.config["CLIENT_KEY"],
+        )
+        ssl_options = pika.SSLOptions(context)
+        credentials = pika.PlainCredentials(
+            current_app.config["RABBITMQ_USER"], current_app.config["RABBITMQ_PASS"]
+        )
+        conn_params = pika.ConnectionParameters(
+            current_app.config["RABBITMQ_HOST"],
+            current_app.config["RABBITMQ_PORT"],
+            current_app.config["RABBITMQ_VHOST"],
+            credentials,
+            ssl_options=ssl_options
+        )
+    else:
+        conn_params = pika.ConnectionParameters(
+            current_app.config["RABBITMQ_HOST"],
+            current_app.config["RABBITMQ_PORT"],
+            current_app.config["RABBITMQ_VHOST"],
+        )
+    return pika.BlockingConnection(conn_params)
+

@@ -2,12 +2,11 @@ import json
 from jsonschema import validate, ValidationError, draft7_format_checker
 from flask import Response, current_app, request, url_for
 from flask_restful import Resource
-import pika
 from sqlalchemy.exc import IntegrityError
 from werkzeug.exceptions import UnsupportedMediaType, NotFound, Conflict, BadRequest
 from sensorhub.models import Stats
 from sensorhub import db
-from sensorhub.utils import require_admin
+from sensorhub.utils import get_rabbit_connection
 from sensorhub.constants import *
 
 
@@ -16,7 +15,7 @@ class SensorStats(Resource):
     def get(self, sensor):
         if sensor.stats:
             body = sensor.stats.serialize()
-            return Response(json.dumps(body), 200)
+            return Response(json.dumps(body), 200, mimetype=JSON)
         else:
             self._send_task(sensor)
             return Response(status=202)
@@ -55,9 +54,7 @@ class SensorStats(Resource):
         }
 
         # form a connection, open channel and declare a queue
-        connection = pika.BlockingConnection(
-            pika.ConnectionParameters(current_app.config["RABBITMQ_BROKER_ADDR"])
-        )
+        connection = get_rabbit_connection()
         channel = connection.channel()
         channel.queue_declare(queue="stats")
 

@@ -17,7 +17,8 @@ def create_app(test_config=None):
         SQLALCHEMY_TRACK_MODIFICATIONS=False,
         CACHE_TYPE="FileSystemCache",
         CACHE_DIR=os.path.join(app.instance_path, "cache"),
-        RABBITMQ_BROKER_ADDR="localhost"
+        RABBITMQ_BROKER_ADDR="amqp://localhost/",
+        RABBIT_USE_TLS=False,
     )
 
     if test_config is None:
